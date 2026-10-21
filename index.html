@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade 8 Midterm 1 English Revision App</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .option-card {
+            transition: all 0.2s ease;
+        }
+        .option-card:hover:not(.disabled) {
+            transform: translateY(-2px);
+            border-color: #4f46e5;
+            background-color: #f5f3ff;
+        }
+        .correct-anim {
+            animation: pulse-green 0.4s ease;
+        }
+        .wrong-anim {
+            animation: shake 0.4s ease;
+        }
+        @keyframes pulse-green {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 font-sans pb-10">
+
+    <!-- Header Section -->
+    <header class="bg-indigo-600 text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-indigo-500 rounded-lg">
+                    <i data-lucide="book-open-check" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-base md:text-lg leading-tight">ENGLISH 8 - MIDTERM 1 REVISION</h1>
+                    <p class="text-xs text-indigo-200">Nghia Tan Secondary School (2026 - 2027)</p>
+                </div>
+            </div>
+            
+            <!-- Streak Tracker -->
+            <div class="flex items-center space-x-2 bg-indigo-700 px-3 py-1.5 rounded-full border border-indigo-400 shadow-inner">
+                <i data-lucide="award" class="w-5 h-5 text-amber-300"></i>
+                <div class="text-xs md:text-sm font-semibold">
+                    Chuỗi Điểm 10: <span id="streak-count" class="text-amber-300 font-bold text-base">0</span>/2
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto px-4 mt-6">
+
+        <!-- Progress Bar & Question Meta -->
+        <div id="quiz-header" class="mb-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+                <span id="part-badge" class="inline-block px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full mb-1">
+                    PRONUNCIATION
+                </span>
+                <h2 id="question-number-title" class="text-base font-bold text-slate-800">
+                    Question 1
+                </h2>
+            </div>
+            <div class="w-full sm:w-1/2">
+                <div class="flex justify-between text-xs text-slate-500 mb-1">
+                    <span>Progress</span>
+                    <span id="progress-percent">0%</span>
+                </div>
+                <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="bg-indigo-600 h-2.5 transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Question Box -->
+        <div id="question-card" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 md:p-7 mb-6">
+            <!-- Context Box for Reading or Notice Images/Text -->
+            <div id="context-container" class="hidden mb-4 p-4 bg-slate-50 rounded-xl border border-slate-200 text-sm text-slate-700 leading-relaxed max-h-60 overflow-y-auto">
+                <div id="context-text"></div>
+            </div>
+
+            <div id="question-text" class="text-base md:text-lg font-medium text-slate-900 mb-5 leading-relaxed">
+                <!-- Question content -->
+            </div>
+
+            <!-- Options Container -->
+            <div id="options-container" class="space-y-3">
+                <!-- Options rendered dynamically -->
+            </div>
+
+            <!-- Explanation Box -->
+            <div id="explanation-box" class="hidden mt-6 p-4 rounded-xl border">
+                <div class="flex items-start space-x-3">
+                    <div id="explanation-icon" class="mt-0.5"></div>
+                    <div class="flex-1">
+                        <h4 id="explanation-title" class="font-bold text-sm md:text-base mb-1"></h4>
+                        <div id="explanation-text" class="text-xs md:text-sm text-slate-700 leading-relaxed"></div>
+                    </div>
+                </div>
+                <button id="next-btn" onclick="nextQuestion()" class="mt-4 w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition flex items-center justify-center space-x-2">
+                    <span>Next Question</span>
+                    <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-card" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 p-8 text-center">
+            <div id="result-icon-container" class="w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-4">
+                <!-- Icon -->
+            </div>
+            <h2 id="result-title" class="text-2xl font-bold mb-2"></h2>
+            <p id="result-score" class="text-3xl font-extrabold text-indigo-600 mb-4"></p>
+            <p id="result-message" class="text-slate-600 text-sm md:text-base mb-6 max-w-md mx-auto"></p>
+
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-6 max-w-md mx-auto">
+                <div class="flex justify-between items-center py-2 border-b border-slate-200 text-sm">
+                    <span class="text-slate-600">Total Questions:</span>
+                    <span id="total-q-stat" class="font-bold"></span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-slate-200 text-sm">
+                    <span class="text-slate-600">Correct Answers:</span>
+                    <span id="correct-q-stat" class="font-bold text-emerald-600"></span>
+                </div>
+                <div class="flex justify-between items-center py-2 text-sm">
+                    <span class="text-slate-600">100% Score Streak Status:</span>
+                    <span id="streak-stat" class="font-bold text-indigo-600"></span>
+                </div>
+            </div>
+
+            <button onclick="restartQuiz()" class="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md transition flex items-center justify-center space-x-2 mx-auto">
+                <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
+                <span>Practice Again (Shuffle Questions)</span>
+            </button>
+        </div>
+
+    </main>
+
+    <script>
+        // FULL QUESTION BANK FROM DE CUONG TIENG ANH 8 GHK1 NGHIA TAN
+        const rawQuestionBank = [
+            // Exercise 1: Pronunciation
+            {
+                part: "Exercise 1: Pronunciation",
+                question: "Choose the word whose underlined part is pronounced differently from that of the others: <u>food</u>, <u>foot</u>, <u>hook</u>, <u>wood</u>.",
+                options: [
+                    { text: "food (/u:/)", isCorrect: true },
+                    { text: "foot (/ʊ/)", isCorrect: false },
+                    { text: "hook (/ʊ/)", isCorrect: false },
+                    { text: "wood (/ʊ/)", isCorrect: false }
+                ],
+                explanation: "'food' có âm phát âm là /u:/, còn 'foot', 'hook', 'wood' phát âm là âm ngắn /ʊ/."
+            },
+            {
+                part: "Exercise 1: Pronunciation",
+                question: "Choose the word whose underlined part is pronounced differently: ent<u>e</u>r, gath<u>e</u>r, pref<u>e</u>r, diff<u>e</u>r.",
+                options: [
+                    { text: "prefer (/ɜː/)", isCorrect: true },
+                    { text: "enter (/ər/)", isCorrect: false },
+                    { text: "gather (/ər/)", isCorrect: false },
+                    { text: "differ (/ər/)", isCorrect: false }
+                ],
+                explanation: "'prefer' nhấn âm 2 và có âm /ɜː/, các từ còn lại nhấn âm 1 và có đuôi phát âm là âm yếu /ər/."
+            },
+            {
+                part: "Exercise 1: Pronunciation",
+                question: "Choose the word whose underlined part is pronounced differently: gr<u>ou</u>p, sh<u>ou</u>ld, w<u>ou</u>ld, c<u>ou</u>ld.",
+                options: [
+                    { text: "group (/u:/)", isCorrect: true },
+                    { text: "should (/ʊ/)", isCorrect: false },
+                    { text: "would (/ʊ/)", isCorrect: false },
+                    { text: "could (/ʊ/)", isCorrect: false }
+                ],
+                explanation: "'group' chứa âm /u:/, trong khi 'should', 'would', 'could' chứa âm /ʊ/."
+            },
+            {
+                part: "Exercise 1: Pronunciation",
+                question: "Choose the word whose underlined part is pronounced differently: <u>e</u>xciting, conv<u>e</u>nient, r<u>a</u>cket, b<u>e</u>gin.",
+                options: [
+                    { text: "racket (/æ/)", isCorrect: true },
+                    { text: "exciting (/ɪ/)", isCorrect: false },
+                    { text: "convenient (/ɪ/)", isCorrect: false },
+                    { text: "begin (/ɪ/)", isCorrect: false }
+                ],
+                explanation: "'racket' phần gạch chân phát âm là /æ/, các từ còn lại phát âm âm không nhấn /ɪ/."
+            },
+            {
+                part: "Exercise 1: Pronunciation",
+                question: "Choose the word whose underlined part is pronounced differently: fr<u>ui</u>t, s<u>ui</u>t, j<u>ui</u>ce, b<u>ui</u>ld.",
+                options: [
+                    { text: "build (/ɪ/)", isCorrect: true },
+                    { text: "fruit (/u:/)", isCorrect: false },
+                    { text: "suit (/u:/)", isCorrect: false },
+                    { text: "juice (/u:/)", isCorrect: false }
+                ],
+                explanation: "'build' phát âm là /bɪld/, còn 'fruit', 'suit', 'juice' phát âm âm nguyên âm /u:/."
+            },
+
+            // Exercise 2: Stress
+            {
+                part: "Exercise 2: Stress",
+                question: "Choose the word that is stressed differently from that of the other words: enjoyment, concentrate, practical, media.",
+                options: [
+                    { text: "enjoyment (nhấn âm 2)", isCorrect: true },
+                    { text: "concentrate (nhấn âm 1)", isCorrect: false },
+                    { text: "practical (nhấn âm 1)", isCorrect: false },
+                    { text: "media (nhấn âm 1)", isCorrect: false }
+                ],
+                explanation: "'enjoyment' nhấn trọng âm vào âm tiết thứ 2 (en-'joy-ment), các từ còn lại nhấn âm tiết thứ 1."
+            },
+            {
+                part: "Exercise 2: Stress",
+                question: "Choose the word that is stressed differently: account, bully, discuss, upload.",
+                options: [
+                    { text: "bully (nhấn âm 1)", isCorrect: true },
+                    { text: "account (nhấn âm 2)", isCorrect: false },
+                    { text: "discuss (nhấn âm 2)", isCorrect: false },
+                    { text: "upload (nhấn âm 2)", isCorrect: false }
+                ],
+                explanation: "'bully' có trọng âm rơi vào âm tiết thứ nhất ('bul-ly), các từ còn lại rơi vào âm tiết thứ 2."
+            },
+            {
+                part: "Exercise 2: Stress",
+                question: "Choose the word that is stressed differently: harmful, data, effect, leisure.",
+                options: [
+                    { text: "effect (nhấn âm 2)", isCorrect: true },
+                    { text: "harmful (nhấn âm 1)", isCorrect: false },
+                    { text: "data (nhấn âm 1)", isCorrect: false },
+                    { text: "leisure (nhấn âm 1)", isCorrect: false }
+                ],
+                explanation: "'effect' nhấn âm 2 (ef-'fect), các từ khác là tính từ/danh từ 2 âm tiết thường nhấn âm 1."
+            },
+
+            // Exercise 3: Multiple Choice
+            {
+                part: "Exercise 3: Vocabulary & Grammar",
+                question: "Daisy is ________ social media. She spends lots of time on Facebook and Instagram.",
+                options: [
+                    { text: "addicted to (nghiện)", isCorrect: true },
+                    { text: "tired of (mệt mỏi)", isCorrect: false },
+                    { text: "bored with (chán)", isCorrect: false },
+                    { text: "afraid of (sợ)", isCorrect: false }
+                ],
+                explanation: "Cụm từ 'be addicted to something' nghĩa là nghiện cái gì. Ngữ cảnh dành nhiều thời gian cho Facebook/Instagram chỉ việc nghiện mạng xã hội."
+            },
+            {
+                part: "Exercise 3: Vocabulary & Grammar",
+                question: "________ leisure time is free from compulsory activities, it is often referred to as 'free time'.",
+                options: [
+                    { text: "Because (Bởi vì)", isCorrect: true },
+                    { text: "Although (Mặc dù)", isCorrect: false },
+                    { text: "When (Khi)", isCorrect: false },
+                    { text: "As long as (Miễn là)", isCorrect: false }
+                ],
+                explanation: "'Because' chỉ nguyên nhân: Bởi vì thời gian rảnh không có các hoạt động bắt buộc nên nó thường được gọi là 'thời gian tự do'."
+            },
+            {
+                part: "Exercise 3: Vocabulary & Grammar",
+                question: "It's not always true that rich people donate ________ than poor people do.",
+                options: [
+                    { text: "more generously", isCorrect: true },
+                    { text: "generously", isCorrect: false },
+                    { text: "most generously", isCorrect: false },
+                    { text: "more generous", isCorrect: false }
+                ],
+                explanation: "Động từ 'donate' đi kèm trạng từ 'generously'. Cấu trúc so sánh hơn của trạng từ dài là 'more + adv + than'."
+            },
+            {
+                part: "Exercise 3: Vocabulary & Grammar",
+                question: "I went with the village children to ________ the buffaloes.",
+                options: [
+                    { text: "herd (chăn/chăn thả)", isCorrect: true },
+                    { text: "bring", isCorrect: false },
+                    { text: "play", isCorrect: false },
+                    { text: "take", isCorrect: false }
+                ],
+                explanation: "Cụm từ cố định 'herd the buffaloes' nghĩa là chăn trâu."
+            },
+            {
+                part: "Exercise 3: Vocabulary & Grammar",
+                question: "Mai dances ________ than Hoa does.",
+                options: [
+                    { text: "more beautifully", isCorrect: true },
+                    { text: "beautifully", isCorrect: false },
+                    { text: "more beautiful", isCorrect: false },
+                    { text: "beautiful", isCorrect: false }
+                ],
+                explanation: "'dances' là động từ thường nên dùng trạng từ 'beautifully'. So sánh hơn của trạng từ dài là 'more beautifully than'."
+            },
+            {
+                part: "Exercise 3: Vocabulary & Grammar",
+                question: "Lan wants to join the school music club; ________, she can't sing or play any instruments.",
+                options: [
+                    { text: "however (tuy nhiên)", isCorrect: true },
+                    { text: "and (và)", isCorrect: false },
+                    { text: "otherwise (nếu không thì)", isCorrect: false },
+                    { text: "so (cho nên)", isCorrect: false }
+                ],
+                explanation: "Liên từ trạng từ 'however' đứng giữa dấu chấm phẩy và dấu phẩy, diễn tả ý đối lập: Lan muốn tham gia CLB; tuy nhiên bạn ấy không biết hát hay chơi nhạc cụ."
+            },
+
+            // Exercise 6: Signs & Notices
+            {
+                part: "Exercise 6: Reading Signs & Notices",
+                context: "<b>Notice:</b><br>To: Linda | From: Adam<br>Hi, Linda. I need my geography book back. Big test on Tuesday! Can you bring it with you to the gym tomorrow? Thanks!",
+                question: "What does the notice say?",
+                options: [
+                    { text: "On Tuesday, Adam has a geography exam.", isCorrect: true },
+                    { text: "Linda wants to study in the fitness center.", isCorrect: false },
+                    { text: "Adam requests to take Linda's book.", isCorrect: false },
+                    { text: "The book belongs to Linda.", isCorrect: false }
+                ],
+                explanation: "Adam nhắn bài kiểm tra Địa lý vào thứ Ba ('Big test on Tuesday!'), cuốn sách là của Adam mà Linda đang mượn."
+            },
+            {
+                part: "Exercise 6: Reading Signs & Notices",
+                context: "<b>Sign:</b> <span class='text-red-600 font-bold'>NO Pushing!</span>",
+                question: "What does the sign say?",
+                options: [
+                    { text: "You must not push other people.", isCorrect: true },
+                    { text: "You must not run near the water.", isCorrect: false },
+                    { text: "You must not swim in this area.", isCorrect: false },
+                    { text: "You must not climb the stairs.", isCorrect: false }
+                ],
+                explanation: "'NO Pushing!' nghĩa là Không xô đẩy -> Bạn không được phép xô đẩy người khác."
+            },
+
+            // Exercise 8: Sentence Ordering
+            {
+                part: "Exercise 8: Text Organization",
+                context: "<i>Intro:</i> After a busy week of work, I always look forward to my leisure time. It's the perfect opportunity to unwind.<br><br>a. No matter how I choose to spend my free time, these moments help me keep a balance between work and relaxation.<br>b. On some weekends, I love gathering with friends for a movie night or taking a short trip out of the city.<br>c. On other occasions, I enjoy reading quietly in a park, letting the peaceful surroundings help me relax and clear my mind.",
+                question: "Put the sentences (a-c) in the correct order to make a logical text:",
+                options: [
+                    { text: "b - c - a", isCorrect: true },
+                    { text: "c - a - b", isCorrect: false },
+                    { text: "c - b - a", isCorrect: false },
+                    { text: "b - a - c", isCorrect: false }
+                ],
+                explanation: "Thứ tự logic: 'b' (Một vài cuối tuần...), 'c' (Vào những dịp khác...), 'a' (Dù chọn cách nào...)."
+            },
+
+            // Exercise 9 & 10: Sentence Transformation & Construction
+            {
+                part: "Exercise 9: Sentence Rewrite",
+                question: "Rewrite using the given word in bracket: 'My sister and I fancy reading novels when we have free time.' (adore)",
+                options: [
+                    { text: "My sister and I adore reading novels when we have free time.", isCorrect: true },
+                    { text: "My sister and I adore to read novels when we have free time.", isCorrect: false },
+                    { text: "My sister and I are adore reading novels in free time.", isCorrect: false },
+                    { text: "My sister and I adore read novels when we have free time.", isCorrect: false }
+                ],
+                explanation: "'fancy + V-ing' đồng nghĩa với 'adore + V-ing' (yêu thích làm gì)."
+            },
+            {
+                part: "Exercise 9: Sentence Rewrite",
+                question: "Rewrite: 'Life in the countryside isn't as stressful as life in the city.' (more)",
+                options: [
+                    { text: "Life in the city is more stressful than life in the countryside.", isCorrect: true },
+                    { text: "Life in the countryside is more stressful than life in the city.", isCorrect: false },
+                    { text: "Life in the city isn't more stressful than life in the countryside.", isCorrect: false },
+                    { text: "Life in the city is most stressful than life in the countryside.", isCorrect: false }
+                ],
+                explanation: "Cuộc sống ở nông thôn không căng thẳng bằng ở thành phố -> Cuộc sống ở thành phố căng thẳng hơn cuộc sống ở nông thôn."
+            },
+            {
+                part: "Exercise 9: Sentence Rewrite",
+                question: "Rewrite: 'She would rather go shopping than watch TV.' (prefers)",
+                options: [
+                    { text: "She prefers going shopping to watching TV.", isCorrect: true },
+                    { text: "She prefers to go shopping than watch TV.", isCorrect: false },
+                    { text: "She prefers go shopping to watch TV.", isCorrect: false },
+                    { text: "She prefers going shopping than watching TV.", isCorrect: false }
+                ],
+                explanation: "Cấu trúc đồng nghĩa: 'would rather V1 than V2' = 'prefer V-ing1 to V-ing2' (thích làm gì hơn làm gì)."
+            },
+            {
+                part: "Exercise 10: Sentence Building",
+                question: "Build a complete sentence from cues: 'Mary / crazy / do puzzles / because / she / think / it / good / her brain.'",
+                options: [
+                    { text: "Mary is crazy about doing puzzles because she thinks it is good for her brain.", isCorrect: true },
+                    { text: "Mary is crazy for do puzzles because she think it good for her brain.", isCorrect: false },
+                    { text: "Mary crazy about doing puzzles because she thinks it good to her brain.", isCorrect: false },
+                    { text: "Mary is crazy doing puzzles because she thinks it is good with her brain.", isCorrect: false }
+                ],
+                explanation: "Cấu trúc: 'be crazy about + V-ing' (thích phát cuồng cái gì) và 'be good for...' (tốt cho cái gì)."
+            },
+            {
+                part: "Exercise 10: Sentence Building",
+                question: "Build a complete sentence from cues: 'Young people / prefer / message / friends / meet / face-to-face.'",
+                options: [
+                    { text: "Young people prefer messaging friends to meeting face-to-face.", isCorrect: true },
+                    { text: "Young people prefer message friends than meet face-to-face.", isCorrect: false },
+                    { text: "Young people prefer messaging friends than meeting face-to-face.", isCorrect: false },
+                    { text: "Young people prefers messaging friends to meeting face-to-face.", isCorrect: false }
+                ],
+                explanation: "Cấu trúc: 'prefer V-ing1 to V-ing2' (thích nhắn tin cho bạn bè hơn là gặp mặt trực tiếp)."
+            }
+        ];
+
+        // State variables
+        let quizData = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let streak = parseInt(localStorage.getItem('eng8_midterm_streak') || '0');
+        let answered = false;
+
+        // Shuffle utility
+        function shuffle(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        // Initialize Quiz
+        function initQuiz() {
+            // Shuffle question order and options order
+            quizData = shuffle(rawQuestionBank).map(q => ({
+                ...q,
+                options: shuffle(q.options)
+            }));
+
+            currentQuestionIndex = 0;
+            score = 0;
+            answered = false;
+
+            document.getElementById("quiz-header").classList.remove("hidden");
+            document.getElementById("question-card").classList.remove("hidden");
+            document.getElementById("result-card").classList.add("hidden");
+
+            updateStreakDisplay();
+            renderQuestion();
+        }
+
+        function updateStreakDisplay() {
+            document.getElementById("streak-count").innerText = streak;
+        }
+
+        function renderQuestion() {
+            answered = false;
+            const q = quizData[currentQuestionIndex];
+
+            document.getElementById("part-badge").innerText = q.part;
+            document.getElementById("question-number-title").innerText = `Question ${currentQuestionIndex + 1} of ${quizData.length}`;
+            
+            const progress = Math.round((currentQuestionIndex / quizData.length) * 100);
+            document.getElementById("progress-bar").style.width = `${progress}%`;
+            document.getElementById("progress-percent").innerText = `${progress}%`;
+
+            // Context rendering if available
+            const contextBox = document.getElementById("context-container");
+            if (q.context) {
+                contextBox.classList.remove("hidden");
+                document.getElementById("context-text").innerHTML = q.context;
+            } else {
+                contextBox.classList.add("hidden");
+            }
+
+            document.getElementById("question-text").innerHTML = q.question;
+
+            const optionsContainer = document.getElementById("options-container");
+            optionsContainer.innerHTML = "";
+
+            const labels = ["A", "B", "C", "D"];
+            q.options.forEach((opt, idx) => {
+                const optBtn = document.createElement("button");
+                optBtn.className = "option-card w-full text-left p-3.5 md:p-4 rounded-xl border-2 border-slate-200 bg-slate-50 hover:bg-indigo-50 flex items-start space-x-3 cursor-pointer";
+                optBtn.onclick = () => selectAnswer(idx);
+
+                optBtn.innerHTML = `
+                    <span class="w-6 h-6 flex-shrink-0 bg-white rounded-md border border-slate-300 font-bold text-slate-700 text-xs flex items-center justify-center mt-0.5">
+                        ${labels[idx]}
+                    </span>
+                    <span class="text-sm md:text-base text-slate-800 leading-relaxed">${opt.text}</span>
+                `;
+                optionsContainer.appendChild(optBtn);
+            });
+
+            // Reset explanation box
+            const expBox = document.getElementById("explanation-box");
+            expBox.classList.add("hidden");
+            expBox.className = "hidden mt-6 p-4 rounded-xl border";
+
+            lucide.createIcons();
+        }
+
+        function selectAnswer(selectedIndex) {
+            if (answered) return;
+            answered = true;
+
+            const q = quizData[currentQuestionIndex];
+            const options = document.querySelectorAll(".option-card");
+            const selectedOpt = q.options[selectedIndex];
+
+            options.forEach(opt => opt.classList.add("disabled"));
+
+            const isCorrect = selectedOpt.isCorrect;
+
+            if (isCorrect) {
+                score++;
+                options[selectedIndex].classList.add("bg-emerald-50", "border-emerald-500", "correct-anim");
+                options[selectedIndex].querySelector("span").classList.add("bg-emerald-500", "text-white", "border-emerald-500");
+            } else {
+                options[selectedIndex].classList.add("bg-rose-50", "border-rose-500", "wrong-anim");
+                options[selectedIndex].querySelector("span").classList.add("bg-rose-500", "text-white", "border-rose-500");
+
+                // Highlight correct answer
+                q.options.forEach((opt, idx) => {
+                    if (opt.isCorrect) {
+                        options[idx].classList.add("bg-emerald-50", "border-emerald-500");
+                        options[idx].querySelector("span").classList.add("bg-emerald-500", "text-white", "border-emerald-500");
+                    }
+                });
+            }
+
+            // Show explanation
+            const expBox = document.getElementById("explanation-box");
+            const expIcon = document.getElementById("explanation-icon");
+            const expTitle = document.getElementById("explanation-title");
+            const expText = document.getElementById("explanation-text");
+
+            expBox.classList.remove("hidden");
+
+            if (isCorrect) {
+                expBox.classList.add("bg-emerald-50", "border-emerald-200");
+                expIcon.innerHTML = `<i data-lucide="check-circle-2" class="w-6 h-6 text-emerald-600"></i>`;
+                expTitle.className = "font-bold text-sm md:text-base mb-1 text-emerald-800";
+                expTitle.innerText = "Correct Answer! Well done!";
+            } else {
+                expBox.classList.add("bg-rose-50", "border-rose-200");
+                expIcon.innerHTML = `<i data-lucide="x-circle" class="w-6 h-6 text-rose-600"></i>`;
+                expTitle.className = "font-bold text-sm md:text-base mb-1 text-rose-800";
+                expTitle.innerText = "Incorrect! Explanation:";
+            }
+
+            expText.innerHTML = q.explanation;
+            lucide.createIcons();
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizData.length) {
+                renderQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            document.getElementById("quiz-header").classList.add("hidden");
+            document.getElementById("question-card").classList.add("hidden");
+
+            const resultCard = document.getElementById("result-card");
+            resultCard.classList.remove("hidden");
+
+            const isPerfect = (score === quizData.length);
+
+            if (isPerfect) {
+                streak++;
+            } else {
+                streak = 0; // Reset streak if score is less than 100%
+            }
+            localStorage.setItem('eng8_midterm_streak', streak);
+
+            const iconContainer = document.getElementById("result-icon-container");
+            const titleEl = document.getElementById("result-title");
+            const scoreEl = document.getElementById("result-score");
+            const msgEl = document.getElementById("result-message");
+
+            scoreEl.innerText = `${score} / ${quizData.length} Correct`;
+            document.getElementById("total-q-stat").innerText = quizData.length;
+            document.getElementById("correct-q-stat").innerText = score;
+
+            if (isPerfect) {
+                iconContainer.className = "w-20 h-20 mx-auto rounded-full bg-emerald-100 flex items-center justify-center mb-4 text-emerald-600";
+                iconContainer.innerHTML = `<i data-lucide="trophy" class="w-10 h-10"></i>`;
+                titleEl.className = "text-2xl font-bold mb-2 text-emerald-600";
+                titleEl.innerText = "PERFECT SCORE 10/10!";
+                
+                if (streak >= 2) {
+                    msgEl.innerText = "🎉 CONGRATULATIONS! You have achieved 2 CONSECUTIVE PERFECT SCORES! You are fully prepared for the exam!";
+                    document.getElementById("streak-stat").innerText = "🏆 Target Achieved!";
+                } else {
+                    msgEl.innerText = "Awesome job! Get 1 more perfect score in a row to complete your target!";
+                    document.getElementById("streak-stat").innerText = "1 / 2 Times";
+                }
+            } else {
+                iconContainer.className = "w-20 h-20 mx-auto rounded-full bg-amber-100 flex items-center justify-center mb-4 text-amber-600";
+                iconContainer.innerHTML = `<i data-lucide="refresh-cw" class="w-10 h-10"></i>`;
+                titleEl.className = "text-2xl font-bold mb-2 text-slate-800";
+                titleEl.innerText = "Good Try! Keep Practicing!";
+                msgEl.innerText = "Review the explanations for missed questions and try another generated set!";
+                document.getElementById("streak-stat").innerText = "0 / 2 Times (Reset)";
+            }
+
+            updateStreakDisplay();
+            lucide.createIcons();
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        window.onload = initQuiz;
+    </script>
+</body>
+</html>
